@@ -20,12 +20,12 @@ registers or wires
 [31:0]un,sigma;		read only through Wishbone interface, address: 0x20, 0x24
 
 
-[4:0]of;			overflow register, read only through Wishbone interface, address: 0x28
-of[0]==1	:	kpd overflow
-of[1]==1	:	err[0] overflow
-of[2]==1	:	err[1] overflow
-of[3]==1	:	un overflow
-of[4]==1	:	sigma overflow
+[4:0]OF;			overflow register, read only through Wishbone interface, address: 0x28
+OF[0]==1	:	kpd overflow
+OF[1]==1	:	err[0] overflow
+OF[2]==1	:	err[1] overflow
+OF[3]==1	:	un overflow
+OF[4]==1	:	sigma overflow
 [0:15]rl;			read lock, when asserted corelated reagister can not be read through Wishbone interface
 [0:7]wl;			write lock, when asserted corelated reagister can not be written through Wishbone interface
 
@@ -73,7 +73,7 @@ parameter	kp_adr		=	0,
 		err_1_adr		=	7,
 		un_adr		=	8,
 		sigma_adr	=	9,
-		of_adr		=	10;
+		OF_adr		=	10;
 
 wire rst;
 assign	rst=~i_rst;
@@ -204,9 +204,9 @@ reg	rlerr_0;
 reg	rlerr_1;
 reg	rla;
 reg	rlsigma;
-reg	rlof;
+reg	rlOF;
 
-reg	[4:0]of;
+reg	[4:0]OF;
 reg	[15:0]kpd;
 reg	[15:0]err[0:1];
 
@@ -228,20 +228,20 @@ wire	cin;
 wire	[31:0]sum;
 wire	[31:0]product;
 
-wire	of_addition[0:1];
-assign	of_addition[0]=(p[15]&&a[15]&&(!sum[15]))||((!p[15])&&(!a[15])&&sum[15]);
-assign	of_addition[1]=(p[31]&&a[31]&&(!sum[31]))||((!p[31])&&(!a[31])&&sum[31]);
+wire	OF_addition[0:1];
+assign	OF_addition[0]=(p[15]&&a[15]&&(!sum[15]))||((!p[15])&&(!a[15])&&sum[15]);
+assign	OF_addition[1]=(p[31]&&a[31]&&(!sum[31]))||((!p[31])&&(!a[31])&&sum[31]);
 
 
 
 reg	[31:0]reg_sum;
 reg	[31:0]reg_product;
-reg	reg_of_addition[0:1];
+reg	reg_OF_addition[0:1];
 
 always@(posedge i_clk)begin
 	reg_sum<=sum;
-	reg_of_addition[0]<=of_addition[0];
-	reg_of_addition[1]<=of_addition[1];
+	reg_OF_addition[0]<=OF_addition[0];
+	reg_OF_addition[1]<=OF_addition[1];
 	reg_product<=product;
 end
 
@@ -259,8 +259,8 @@ always@(posedge i_clk or negedge rst)
 		rlerr_1<=0;
 		rla<=0;
 		rlsigma<=0;
-		rlof<=0;
-		of<=0;
+		rlOF<=0;
+		OF<=0;
 		kpd<=0;
 		err[0]<=0;
 		err[1]<=0;
@@ -285,7 +285,7 @@ always@(posedge i_clk or negedge rst)
 							wlkd<=1;	
 							wlpv<=1;
 							rlkpd<=1;
-							rlof<=1;
+							rlOF<=1;
 						end
 						else if(update_esu)begin
 							state_2<=15'b00000000001000;
@@ -299,7 +299,7 @@ always@(posedge i_clk or negedge rst)
 							rlerr_1<=1;
 							rla<=1;
 							rlsigma<=1;
-							rlof<=1;
+							rlOF<=1;
 						end
 					end
 					15'b000000000000010:	begin
@@ -314,8 +314,8 @@ always@(posedge i_clk or negedge rst)
 						wlkd<=0;	
 						wlpv<=0;
 						rlkpd<=0;
-						rlof<=0;
-						of[0]<=reg_of_addition[0];
+						rlOF<=0;
+						OF[0]<=reg_OF_addition[0];
 						state_2<=15'b000000000000001;
 					end
 					15'b000000000001000:	begin
@@ -331,13 +331,13 @@ always@(posedge i_clk or negedge rst)
 					end
 					15'b000000000100000:	begin
 						err[1]<=reg_sum[15:0];
-						of[2]<=of[1];
+						OF[2]<=OF[1];
 
 						state_2<=15'b000000001000000;
 					end		
 					15'b000000001000000:	begin
 						err[0]<=reg_sum[15:0];
-						of[1]<=reg_of_addition[0];
+						OF[1]<=reg_OF_addition[0];
 						cout<=0;
 						start<=1;
 						state_2<=15'b000000010000000;
@@ -374,8 +374,8 @@ always@(posedge i_clk or negedge rst)
 
 						a<=reg_product;
 						sigma<=reg_sum;
-						of[3]<=of[4]|reg_of_addition[1];
-						of[4]<=of[4]|reg_of_addition[1];
+						OF[3]<=OF[4]|reg_OF_addition[1];
+						OF[4]<=OF[4]|reg_OF_addition[1];
 						state_1<=1;
 						
 						state_2<=15'b010000000000000;
@@ -384,13 +384,13 @@ always@(posedge i_clk or negedge rst)
 					15'b010000000000000:	begin
 						a<=reg_sum;		//Kpd*err0-Kd*err1
 						p<=sigma;
-						of[3]<=of[3]|reg_of_addition[1];
+						OF[3]<=OF[3]|reg_OF_addition[1];
 						state_1<=1;
 						state_2<=15'b100000000000000;
 					end
 					15'b100000000000000:	begin
 						un<=reg_sum;
-						of[3]<=of[3]|reg_of_addition[1];
+						OF[3]<=OF[3]|reg_OF_addition[1];
 						state_2<=15'b000000000000001;
 						wlkp<=0;
 						wlki<=0;
@@ -402,7 +402,7 @@ always@(posedge i_clk or negedge rst)
 						rlerr_1<=0;
 						rla<=0;
 						rlsigma<=0;
-						rlof<=0;
+						rlOF<=0;
 					end
 				endcase
 			end
@@ -442,7 +442,7 @@ assign	rdata[6]=err[0];
 assign	rdata[7]=err[1];
 assign	rdata[8]=un[15:0];
 assign	rdata[9]=sigma[15:0];
-assign	rdata[10]={11'b0,of};
+assign	rdata[10]={11'b0,OF};
 `endif
 
 `ifdef	wb_32bit
@@ -456,7 +456,7 @@ assign	rdata[6]={{16{err[0][15]}},err[0]};
 assign	rdata[7]={{16{err[1][15]}},err[1]};
 assign	rdata[8]=un;
 assign	rdata[9]=sigma;
-assign	rdata[10]={27'b0,of};
+assign	rdata[10]={27'b0,OF};
 `endif
 
 `ifdef	wb_64bit
@@ -470,7 +470,7 @@ assign	rdata[6]={{48{err[0][15]}},err[0]};
 assign	rdata[7]={{48{err[1][15]}},err[1]};
 assign	rdata[8]={{32{un[31]}},un};
 assign	rdata[9]={{32{sigma[31]}},sigma};
-assign	rdata[10]={59'b0,of};
+assign	rdata[10]={59'b0,OF};
 `endif
 
 assign	rdata[11]=0;
@@ -481,7 +481,7 @@ assign	rdata[15]=0;
 
 
 wire	[0:15]rl;
-assign	rl={5'b0,rlkpd,rlerr_0,rlerr_1,rla,rlsigma,rlof,5'b0};
+assign	rl={5'b0,rlkpd,rlerr_0,rlerr_1,rla,rlsigma,rlOF,5'b0};
 
 wire	rack;	// wishbone read acknowledged
 assign	rack=(re&adr_check_1&(~rl[adr_1]))|(re&(~adr_check_1));
