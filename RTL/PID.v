@@ -194,7 +194,7 @@ reg	[14:0]state_2;
 reg	state_1;
 
 wire	update_kpd;
-assign	update_kpd=wack&&(~adr[2])&(~adr[0])&&adr_check;	//adr==0||adr==2
+assign	update_kpd=wack&&(~adr[2])&&(~adr[0])&&adr_check;	//adr==0||adr==2
 
 wire	update_esu;	//update e(n), sigma and u(n)
 assign	update_esu=wack&&(adr==4)&&adr_check;
