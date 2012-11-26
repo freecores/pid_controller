@@ -60,7 +60,7 @@ parameter	wb_nb=64,
 		RS_adr		=	11
 )(
 input	i_clk,
-input	i_rst,	//reset when low
+input	i_rst,	//reset when high
 //Wishbone Slave port
 input	i_wb_cyc,
 input	i_wb_stb,
